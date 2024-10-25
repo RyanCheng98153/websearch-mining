@@ -3,21 +3,7 @@ from src.Parser import Parser
 import src.util as util
 import math
 from typing import Callable
-
 from tqdm import tqdm
-def tqdm2(func: Callable, total=False): 
-    '''
-    : a spooky method to pass the tqdm function
-    : but return the parameter list or function inside
-    '''
-    # print(type(func))
-    # if type(func) is list or type(func) is set or type(func) is type({}.keys()) or type(func) is zip :
-    if type(func) is not Callable:
-        return func
-    def inner(*args, **kwargs):
-        return func(*args, **kwargs)
-    return inner
-
 import numpy as np
     
 class VectorSpace:
@@ -47,7 +33,7 @@ class VectorSpace:
         """ Create the vector space for the passed document strings """
         self.vectorKeywordIndex = self.getVectorKeywordIndex(documents + query)
         if self.use_tqdm: print("processing makeTFVector...")
-        self.tfVectors = [self.makeTFVector(document) for document in tqdm(documents)] 
+        self.tfVectors = [self.makeTFVector(document) for document in tqdm(documents, disable=not self.use_tqdm)] 
         self.idfVector = self.makeIDFVector(documents)  # Compute IDF vector
         self.tfidfVectors = self.makeTFIDFVectors()  # Compute TF-IDF vectors
         
@@ -71,7 +57,7 @@ class VectorSpace:
         offset=0
         #Associate a position with the keywords which maps to the dimension on the vector used to represent this word
         if self.use_tqdm: print("processing uniqueVocabularyList...")
-        for word in tqdm(uniqueVocabularyList):
+        for word in tqdm(uniqueVocabularyList, disable=not self.use_tqdm):
             vectorIndex[word]=offset
             offset+=1
         return vectorIndex  #(keyword:position)
@@ -102,7 +88,7 @@ class VectorSpace:
         if self.use_tqdm: print("processing makeIDFVector...")
         idfVector = [0] * len(self.vectorKeywordIndex)
         # print(self.vectorKeywordIndex)
-        for word in tqdm(self.vectorKeywordIndex.keys()):
+        for word in tqdm(self.vectorKeywordIndex.keys(), disable=not self.use_tqdm):
             # print((1 + self.n_containing(word, documents)))
             idfVector[self.vectorKeywordIndex[word]] = math.log(len(documents) / (1 + self.n_containing(word, documents)))
             # Adding 1 to prevent division by zero
@@ -115,7 +101,7 @@ class VectorSpace:
         if self.use_tqdm: print("processing makeTFIDFVectors...")
         # print(self.tfVectors[0])
         # print(self.idfVector[0])
-        for tfVector in tqdm(self.tfVectors):
+        for tfVector in tqdm(self.tfVectors, disable=not self.use_tqdm):
             tfidfVector = [tf * idf for tf, idf in zip(tfVector, self.idfVector)]
             tfidfVectors.append(tfidfVector)
         
@@ -128,9 +114,9 @@ class VectorSpace:
         
         if self.use_tqdm: print(f"processing {'TF-IDF' if use_tfidf else 'TF'} {method} ratings..")
         if method == "cosine":
-            ratings = {dkey: self.cosine_similarity(queryVector, documentVector) for dkey, documentVector in tqdm(zip(self.doc_keys, documentVectors), total=len(self.doc_keys))}
+            ratings = {dkey: self.cosine_similarity(queryVector, documentVector) for dkey, documentVector in tqdm(zip(self.doc_keys, documentVectors), total=len(self.doc_keys), disable=not self.use_tqdm)}
         elif method == "euclidean":
-            ratings = {dkey: self.euclidean_distance(queryVector, documentVector) for dkey, documentVector in tqdm(zip(self.doc_keys, documentVectors), total=len(self.doc_keys))}
+            ratings = {dkey: self.euclidean_distance(queryVector, documentVector) for dkey, documentVector in tqdm(zip(self.doc_keys, documentVectors), total=len(self.doc_keys), disable=not self.use_tqdm)}
         else:
             raise ValueError(f"Unknown method '{method}'. Use 'cosine' or 'euclidean'.")
 
