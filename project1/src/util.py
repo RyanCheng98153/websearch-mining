@@ -13,7 +13,6 @@ def removeDuplicates(list):
 	""" remove duplicates from a list """
 	return set((item for item in list))
 
-
 def cosine(vector1, vector2):
 	""" related documents j and q are in the concept space by comparing the vectors :
 		cosine  = ( V1 * V2 ) / ||V1|| x ||V2|| """
@@ -28,6 +27,28 @@ def read_files(dirpath):
         with open(dirpath + file, 'r', encoding="utf-8") as f: 
             documents[file] = "".join(f.readlines())
     return documents
+
+def read_file(filepath):
+    # print(file)
+    with open(filepath, 'r', encoding="utf-8") as f: 
+        document = "".join(f.readlines())
+    return document
+
+from nltk import word_tokenize, pos_tag
+
+def getVerbNoun(text):
+    # Tokenize the text
+    tokens = word_tokenize(text)
+
+    # POS tagging
+    tagged_tokens = pos_tag(tokens)
+
+    # Extract nouns and verbs
+    nouns = [word for word, pos in tagged_tokens if pos.startswith('NN')]
+    verbs = [word for word, pos in tagged_tokens if pos.startswith('VB')]
+    
+    return nouns + verbs
+
 
 from typing import Callable
 
