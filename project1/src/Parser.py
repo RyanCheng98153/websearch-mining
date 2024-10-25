@@ -1,5 +1,7 @@
 #http://tartarus.org/~martin/PorterStemmer/python.txt
 from src.PorterStemmer import PorterStemmer
+from nltk.tokenize import RegexpTokenizer 
+
 
 class Parser:
 
@@ -31,10 +33,12 @@ class Parser:
 	def tokenise(self, string, stemming=True):
 		""" break string up into tokens and stem words """
 		string = self.clean(string)
-		words = string.split(" ")
+		tk = RegexpTokenizer('\s+', gaps = True) 
+		words = tk.tokenize(string) 
+  		# words = string.split(" ")
 		
-		if not stemming:
-			return words
-		return [self.stemmer.stem(word,0,len(word)-1) for word in words]
+		if stemming:
+			return [self.stemmer.stem(word,0,len(word)-1) for word in words]
+		return words
 
 

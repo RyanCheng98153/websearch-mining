@@ -40,17 +40,13 @@ class VectorSpace:
         self.query_tfVector = self.makeTFVector(" ".join(query))
         self.query_tfidfVector = [tf * idf for tf, idf in zip(self.query_tfVector, self.idfVector)]
         
-        # print(self.tfVectors)
-        # print(self.idfVector)
-        
-
     def getVectorKeywordIndex(self, documentList):
         """ create the keyword associated to the position of the elements within the document vectors """
         #Mapped documents into a single word string	
         vocabularyString = " ".join(documentList)
         vocabularyList = self.parser.tokenise(vocabularyString)
         #Remove common words which have no search value
-        # vocabularyList = self.parser.removeStopWords(vocabularyList)
+        vocabularyList = self.parser.removeStopWords(vocabularyList)
         uniqueVocabularyList = util.removeDuplicates(vocabularyList)
 
         vectorIndex={}
@@ -66,6 +62,7 @@ class VectorSpace:
         """ Create the raw TF (term frequency) vector """
         tfVector = [0] * len(self.vectorKeywordIndex)  # Initialize with 0's
         wordList = self.parser.tokenise(wordString)
+        wordList = self.parser.removeStopWords(wordList)
         
         for word in wordList:
             # if word in self.vectorKeywordIndex.keys():
@@ -78,20 +75,38 @@ class VectorSpace:
                 tfVector = [count / total_terms for count in tfVector]
         
         return tfVector
-    
+    '''
     def n_containing(self, word, bloblist):
         """ Count how many documents contain the term """
         return sum(1 for blob in bloblist if word in blob)
 
+    def makeIDFVector_0(self, documents):
+        """ Create the IDF (inverse document frequency) vector """
+        if self.use_tqdm: print("processing makeIDFVector...")
+        idfVector = [0] * len(self.vectorKeywordIndex)
+        for word in tqdm(self.vectorKeywordIndex.keys(), disable=not self.use_tqdm):
+            idfVector[self.vectorKeywordIndex[word]] = math.log(len(documents) / (1 + self.n_containing(word, documents)))
+            # Adding 1 to prevent division by zero
+        
+        return idfVector
+    
+    '''
+    
     def makeIDFVector(self, documents):
         """ Create the IDF (inverse document frequency) vector """
         if self.use_tqdm: print("processing makeIDFVector...")
         idfVector = [0] * len(self.vectorKeywordIndex)
         # print(self.vectorKeywordIndex)
-        for word in tqdm(self.vectorKeywordIndex.keys(), disable=not self.use_tqdm):
-            # print((1 + self.n_containing(word, documents)))
-            idfVector[self.vectorKeywordIndex[word]] = math.log(len(documents) / (1 + self.n_containing(word, documents)))
-            # Adding 1 to prevent division by zero
+        for doc in tqdm(documents, disable=not self.use_tqdm):
+            words = self.parser.tokenise(doc)
+            words = self.parser.removeStopWords(words)
+            for word in set(words):
+                idfVector[self.vectorKeywordIndex[word]] += 1
+                
+        docN = len(documents)
+        
+        idfVector = [math.log(docN / contain) if contain != 0 else 0 for contain in idfVector]
+        # euclidean_idfVector = [math.log(docN / 1 + contain) for contain in idfVector]
         
         return idfVector
     
@@ -99,8 +114,7 @@ class VectorSpace:
         """ Create the TF-IDF vectors for each document """
         tfidfVectors = []
         if self.use_tqdm: print("processing makeTFIDFVectors...")
-        # print(self.tfVectors[0])
-        # print(self.idfVector[0])
+        
         for tfVector in tqdm(self.tfVectors, disable=not self.use_tqdm):
             tfidfVector = [tf * idf for tf, idf in zip(tfVector, self.idfVector)]
             tfidfVectors.append(tfidfVector)
@@ -109,14 +123,18 @@ class VectorSpace:
     
     def search(self, method="cosine", use_tfidf=False, topN_results=10):
         """ Search for documents that match based on the chosen similarity method and vector type (TF or TF-IDF) """
-        queryVector = self.query_tfidfVector if use_tfidf else self.query_tfVector
-        documentVectors = self.tfidfVectors if use_tfidf else self.tfVectors
+        if use_tfidf:
+            documentVectors = self.tfidfVectors
+            queryVector = self.query_tfidfVector    
+        else:
+            documentVectors = self.tfVectors
+            queryVector = self.query_tfVector
         
         if self.use_tqdm: print(f"processing {'TF-IDF' if use_tfidf else 'TF'} {method} ratings..")
         if method == "cosine":
-            ratings = {dkey: self.cosine_similarity(queryVector, documentVector) for dkey, documentVector in tqdm(zip(self.doc_keys, documentVectors), total=len(self.doc_keys), disable=not self.use_tqdm)}
+            ratings = {dkey: self.cosine_similarity(queryVector, dVec) for dkey, dVec in tqdm(zip(self.doc_keys, documentVectors), total=len(self.doc_keys), disable=not self.use_tqdm)}
         elif method == "euclidean":
-            ratings = {dkey: self.euclidean_distance(queryVector, documentVector) for dkey, documentVector in tqdm(zip(self.doc_keys, documentVectors), total=len(self.doc_keys), disable=not self.use_tqdm)}
+            ratings = {dkey: self.euclidean_distance(queryVector, dVec) for dkey, dVec in tqdm(zip(self.doc_keys, documentVectors), total=len(self.doc_keys), disable=not self.use_tqdm)}
         else:
             raise ValueError(f"Unknown method '{method}'. Use 'cosine' or 'euclidean'.")
 
@@ -138,28 +156,15 @@ class VectorSpace:
         """ Calculate Cosine Similarity between two vectors """
         a = np.array(vector1)
         b = np.array(vector2)
-        # Calculate dot product
-        dot_product = np.dot(a, b)
-
-        # Calculate magnitudes
-        magnitude_a = np.linalg.norm(a)
-        magnitude_b = np.linalg.norm(b)
-
-        # Handle the case where the magnitude is zero
-        if magnitude_a == 0 or magnitude_b == 0:
-            return 0.0  # or you can raise an exception
-
-        # Calculate cosine similarity
-        cosine_sim = dot_product / (magnitude_a * magnitude_b)
-
-        return cosine_sim
         
+        if b.size == 0 or np.linalg.norm(b) == 0.0:
+            return 0.0
+        # Calculate cosine similarity
+        return float(np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b)))
 
     def euclidean_distance(self, vector1, vector2):
         """ Calculate Euclidean Distance between two vectors """
         return math.sqrt(sum((v1 - v2) ** 2 for v1, v2 in zip(vector1, vector2)))
-
-    
 
 if __name__ == '__main__':
     #test data

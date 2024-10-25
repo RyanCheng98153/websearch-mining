@@ -12,10 +12,10 @@ import fire
 # test = [12780, 10184, 12428, 13724, 10152, 10355, 12944, 10460, 6715, 6825]
 
 def printRatings(ratings: list):
-    print("NewsID" + " "*11 + "Score")
+    print("NewsID" + " "*9 + "Score")
     for id, rating in ratings:
-        print(f"{id}:\t {round(rating, 5)}")
-    print("--------------------------\n")
+        print(f"{id: <15}{round(rating, 7)}")
+    print("------------------------\n")
 
 def main(# filepath: str = "./EnglishNews/",
          query: str = "",
@@ -31,9 +31,9 @@ def main(# filepath: str = "./EnglishNews/",
     vectorSpace = vsm.VectorSpace(documents=documents, query=query, use_tqdm=use_tqdm)
     
     # 使用 TF 向量和 Cosine Similarity
-    tf_Cosine_ratings = vectorSpace.search( method="cosine", use_tfidf=False, topN_results=10)
-    print("TF Cosine")
-    printRatings(tf_Cosine_ratings)
+    # tf_Cosine_ratings = vectorSpace.search( method="cosine", use_tfidf=False, topN_results=10)
+    # print("TF Cosine")
+    # printRatings(tf_Cosine_ratings)
 
     # 使用 TF-IDF 向量和 Cosine Similarity
     tfidf_Cosine_ratings = vectorSpace.search( method="cosine", use_tfidf=True, topN_results=10)
@@ -41,9 +41,9 @@ def main(# filepath: str = "./EnglishNews/",
     printRatings(tfidf_Cosine_ratings)
     
     # 使用 TF 向量和 Euclidean Distance
-    tf_Euclidean_ratings = vectorSpace.search( method="euclidean", use_tfidf=False, topN_results=10)
-    print("TF Euclidean")
-    printRatings(tf_Euclidean_ratings)
+    # tf_Euclidean_ratings = vectorSpace.search( method="euclidean", use_tfidf=False, topN_results=10)
+    # print("TF Euclidean")
+    # printRatings(tf_Euclidean_ratings)
     
     # 使用 TF-IDF 向量和 Euclidean Distance
     tfidf_Euclidean_ratings = vectorSpace.search( method="euclidean", use_tfidf=True, topN_results=10)
