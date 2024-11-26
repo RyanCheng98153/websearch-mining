@@ -1,3 +1,6 @@
+# dataset files should not be tracked
+WT2G*/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
