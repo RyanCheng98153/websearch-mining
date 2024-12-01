@@ -27,7 +27,7 @@ for searcher in bm25 lm_MLE_smooth lm_JM_similar; do
         
         # Retry loop
         until $success || [ $attempt -gt $max_attempts ]; do
-            python ./part1.py --index $index --searcher $searcher --eval 40
+            python ./part1.py --index $index --searcher $searcher --eval 10
             if [ $? -eq 0 ]; then
                 success=true
                 echo "Index: $index, Searcher: $searcher, Completed successfully."
@@ -70,7 +70,7 @@ for searcher in axiomatic_f1_exp axiomatic_f1_log axiomatic_f2_exp axiomatic_f2_
         
         # Retry loop
         until $success || [ $attempt -gt $max_attempts ]; do
-            python ./part1.py --index $index --searcher $searcher --eval 40
+            python ./part1.py --index $index --searcher $searcher --eval 10
             if [ $? -eq 0 ]; then
                 success=true
                 echo "Index: $index, Searcher: $searcher, Completed successfully."
@@ -88,8 +88,14 @@ for searcher in axiomatic_f1_exp axiomatic_f1_log axiomatic_f2_exp axiomatic_f2_
         fi
     done
 done
+
+for index in porter krovetz none; do
+    echo "Index: $index, Searcher: _EXP, Running..."
+    python ./part2.py --index $index --eval 10 
+done
+
 echo "Queries done"
 
 echo "Cleaning up searcher logs..."
 rm ./hs_err_pid*.log
-echo "Part 1 Done"
+echo "Part 2 Done"

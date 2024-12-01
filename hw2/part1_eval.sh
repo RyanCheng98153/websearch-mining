@@ -21,3 +21,4 @@ for searcher in axiomatic_f1_exp axiomatic_f1_log axiomatic_f2_exp axiomatic_f2_
     done
 done
 
+echo "Evaluation done"
