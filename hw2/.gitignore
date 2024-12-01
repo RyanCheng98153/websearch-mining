@@ -1,0 +1,9 @@
+.venv/*
+__pycache__/*
+.vscode/*
+.venv-wsl/*
+data/*
+indexes/*
+
+WT2G/*
+WT2G_test/*
