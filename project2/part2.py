@@ -78,8 +78,8 @@ def main():
     
     rankings_40_files = {
         "bm25": f"rankings/qrels_40.txt/bm25/{args.index}.runs",
-        "lmJM": f"rankings/qrels_40.txt/lm_JM_similar/{args.index}.runs",
-        "lmMLE": f"rankings/qrels_40.txt/lm_MLE_smooth/{args.index}.runs",
+        # "lmJM": f"rankings/qrels_40.txt/lm_JM_similar/{args.index}.runs",
+        # "lmMLE": f"rankings/qrels_40.txt/lm_MLE_smooth/{args.index}.runs",
         # "axiomatic_f1_exp": "rankings/qrels_40.txt/lm_MLE_smooth/{args.index}.runs",
         # "axiomatic_f1_log": "rankings/qrels_40.txt/axiomatic_f1_log/{args.index}.runs",
         # "axiomatic_f2_exp": "rankings/qrels_40.txt/axiomatic_f2_exp/{args.index}.runs",
